@@ -64,10 +64,16 @@ export default function Home() {
     }
 
     const localChunks = await chunkPdf(pdf);
-    const totalText = localChunks.reduce(
-      (acc, chunk) => acc + chunk.text.length,
-      0,
-    );
+
+    let initialPages = "";
+    const limitInitialPages = 1000;
+    const totalText = localChunks.reduce((acc, chunk) => {
+      if (initialPages.length < limitInitialPages) {
+        initialPages += chunk.text;
+      }
+
+      return acc + chunk.text.length;
+    }, 0);
 
     if (totalText < 500) {
       toast({
@@ -80,6 +86,7 @@ export default function Home() {
       setStatus("idle");
       return;
     }
+    const generateImagePromise = generateImage(initialPages);
 
     setChunks(localChunks);
     setStatus("generating");
@@ -89,6 +96,7 @@ export default function Home() {
     const writeStream = new WritableStream({
       write(chunk) {
         summarizedChunks.push(chunk);
+        console.log(chunk, summarizedChunks.length);
         setChunks((chunks) => {
           return chunks.map((c) =>
             c.text === chunk.text ? { ...c, ...chunk } : c,
@@ -102,7 +110,7 @@ export default function Home() {
     await stream.pipeTo(writeStream, { signal: controller.signal });
 
     const quickSummary = await generateQuickSummary(summarizedChunks, language);
-    const imageUrl = await generateImage(quickSummary.summary);
+    const imageUrl = await generateImagePromise;
 
     setQuickSummary(quickSummary);
     setImage(imageUrl);

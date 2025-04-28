@@ -11,11 +11,23 @@ export async function POST(req: Request) {
   const start = new Date();
 
   const prompt = dedent`
-    I'm going to give you a short summary of what is in a PDF. I need you to create an image that captures the essence of the content.
-    
-    The image should be one that looks good as a hero image on a blog post or website. It should not include any text.
+    I'm going to give you the first few pages of a PDF document. Based on this initial content, analyze and identify the main themes, topics, and overall subject matter.
 
-    Here is the summary:
+    Create a detailed, realistic image that directly illustrates the main subject matter. The image should:
+    - Focus on depicting actual scenes, objects, or environments related to the topic
+    - Show specific elements like historical settings, scientific concepts, or real-world scenarios
+    - Create a photorealistic or artistically detailed representation
+    - Include relevant background elements and environmental context
+    - Maintain high visual quality and professional composition
+    - Avoid generic book covers or presentation slides
+    - Do not include any text or written elements
+
+    For example:
+    - If about Ancient Rome: Show detailed Roman architecture, soldiers, or city life
+    - If about science: Illustrate the actual phenomena, experiments, or concepts
+    - If about business: Depict real workplace scenarios or industry-specific elements
+
+    Here is the initial content to analyze:
 
     ${text}
   `;
