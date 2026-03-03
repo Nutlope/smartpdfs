@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         name: "summary",
         schema: jsonSchema,
       },
-    } as any,
+    },
   });
 
   const content = summaryResponse.choices[0]?.message?.content;
