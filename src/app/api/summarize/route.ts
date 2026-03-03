@@ -1,8 +1,7 @@
-import { togetheraiClient } from "@/lib/ai";
+import { togetheraiBaseClient } from "@/lib/ai";
 import assert from "assert";
 import dedent from "dedent";
 import { z } from "zod";
-import { generateObject } from "ai";
 
 export async function POST(req: Request) {
   const { text, language } = await req.json();
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
     The summary should be well-structured and easy to scan, while maintaining accuracy and completeness.
     Please analyze the text thoroughly before starting the summary.
 
-    IMPORTANT: Output ONLY valid HTML without any markdown or plain text line breaks.
+    IMPORTANT: Output ONLY valid JSON matching the schema. Output ONLY valid HTML without any markdown or plain text line breaks.
   `;
 
   const summarySchema = z.object({
@@ -40,10 +39,13 @@ export async function POST(req: Request) {
       ),
   });
 
-  const summaryResponse = await generateObject({
-    model: togetheraiClient("meta-llama/Llama-3.3-70B-Instruct-Turbo"),
-    schema: summarySchema,
-    maxRetries: 2,
+  const jsonSchema = z.toJSONSchema(summarySchema, {
+    target: "openapi-3.0",
+    io: "output",
+  });
+
+  const summaryResponse = await togetheraiBaseClient.chat.completions.create({
+    model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages: [
       {
         role: "system",
@@ -54,22 +56,25 @@ export async function POST(req: Request) {
         content: text,
       },
     ],
-    mode: "json",
-    // maxTokens: 800,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "summary",
+        schema: jsonSchema,
+      },
+    } as any,
   });
 
-  const rayId = summaryResponse.response?.headers?.["cf-ray"];
-  console.log("Ray ID:", rayId);
-
-  const content = summaryResponse.object;
-  console.log(summaryResponse.usage);
+  const content = summaryResponse.choices[0]?.message?.content;
 
   if (!content) {
-    console.log("Content was blank");
-    return;
+    console.log("Content was blank", JSON.stringify(summaryResponse, null, 2));
+    return Response.json({ error: "No content generated" }, { status: 500 });
   }
 
-  return Response.json(content);
+  const parsed = summarySchema.parse(JSON.parse(content));
+
+  return Response.json(parsed);
 }
 
 export const runtime = "edge";

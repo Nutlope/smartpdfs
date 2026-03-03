@@ -35,7 +35,7 @@
     "react-dropzone": "^14.3.5",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "together-ai": "^0.15.2",
+    "together-ai": "^0.37.0",
     "ws": "^8.18.0",
     "zod": "^4.3.6"
   },

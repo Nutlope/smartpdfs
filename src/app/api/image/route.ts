@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     ${text}
   `;
 
-  const generatedImage = await togetheraiBaseClient.images.create({
+  // @ts-ignore - Together AI types outdated
+  const generatedImage = await togetheraiBaseClient.images.generate({
     model: "black-forest-labs/FLUX.2-dev",
     width: 1280,
     height: 720,
@@ -33,7 +34,13 @@ export async function POST(req: Request) {
     `Flux took ${end.getTime() - start.getTime()}ms to generate an image`,
   );
 
-  const fluxImageUrl = generatedImage.data[0].url;
+  const imageData = generatedImage.data[0];
+  if (!imageData) throw new Error("No image data from Flux");
+
+  if (imageData.url === undefined)
+    throw new Error("Expected URL response format");
+
+  const fluxImageUrl = imageData.url;
 
   if (!fluxImageUrl) throw new Error("No image URL from Flux");
 
