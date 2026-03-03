@@ -128,13 +128,13 @@ export type ImageGenerationResponse = {
   url: string;
 };
 
-export async function generateImage(summary: string) {
+export async function generateImage(text: string) {
   const response = await fetch("/api/image", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text: summary }),
+    body: JSON.stringify({ text }),
   });
 
   const data: ImageGenerationResponse = await response.json();

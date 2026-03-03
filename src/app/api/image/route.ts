@@ -1,8 +1,9 @@
 import dedent from "dedent";
-import { togetheraiBaseClient } from "@/lib/ai";
+import { togetheraiBaseClient, togetheraiClient } from "@/lib/ai";
 import { ImageGenerationResponse } from "@/lib/summarize";
 import { awsS3Client } from "@/lib/s3client";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { generateText } from "ai";
 
 export async function POST(req: Request) {
   const json = await req.json();
@@ -10,43 +11,56 @@ export async function POST(req: Request) {
 
   const start = new Date();
 
+  const truncatedText = text.slice(0, 2000);
+
+  const { text: visualDescription } = await generateText({
+    model: togetheraiClient(
+      "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+    ),
+    prompt: dedent`
+      Based on the following content, describe a single visual scene that represents its essence. 
+      The scene should be suitable for a painting or illustration.
+      Do NOT include any text, words, or writing in your description.
+      Just describe what you would see: objects, colors, atmosphere, lighting, mood.
+      Keep it to 2-3 sentences.
+
+      Content: ${truncatedText}
+
+      Visual scene description:
+    `,
+  });
+
   const prompt = dedent`
-    I'm going to give you a short summary of what is in a PDF. I need you to create an image that captures the essence of the content.
-    
-    The image should be one that looks good as a hero image on a blog post or website. It should not include any text.
+    ${visualDescription}
 
-    Here is the summary:
-
-    ${text}
+    Oil painting, fine art, museum quality, artistic brushstrokes. 
+    No text, no words, no letters, no writing, no documents, no signs.
+    Pure visual illustration only.
   `;
 
-  // @ts-ignore - Together AI types outdated
   const generatedImage = await togetheraiBaseClient.images.generate({
     model: "black-forest-labs/FLUX.2-dev",
     width: 1280,
     height: 720,
-    steps: 24,
     prompt: prompt,
   });
 
   const end = new Date();
-  console.log(
-    `Flux took ${end.getTime() - start.getTime()}ms to generate an image`,
-  );
+  console.log(`Image generation took ${end.getTime() - start.getTime()}ms`);
 
   const imageData = generatedImage.data[0];
-  if (!imageData) throw new Error("No image data from Flux");
+  if (!imageData) throw new Error("No image data generated");
 
   if (imageData.url === undefined)
     throw new Error("Expected URL response format");
 
-  const fluxImageUrl = imageData.url;
+  const imageUrl = imageData.url;
 
-  if (!fluxImageUrl) throw new Error("No image URL from Flux");
+  if (!imageUrl) throw new Error("No image URL returned");
 
-  const fluxFetch = await fetch(fluxImageUrl);
-  const fluxImage = await fluxFetch.blob();
-  const imageBuffer = Buffer.from(await fluxImage.arrayBuffer());
+  const imageFetch = await fetch(imageUrl);
+  const imageBlob = await imageFetch.blob();
+  const imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
 
   const coverImageKey = `pdf-cover-${generatedImage.id}.jpg`;
 

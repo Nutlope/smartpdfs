@@ -97,12 +97,15 @@ export default function Home() {
       },
     });
 
-    const stream = await summarizeStream(localChunks, language);
+    const streamPromise = summarizeStream(localChunks, language);
+    const imagePromise = generateImage(localChunks[0]?.text ?? "");
+
+    const [stream] = await Promise.all([streamPromise]);
     const controller = new AbortController();
     await stream.pipeTo(writeStream, { signal: controller.signal });
 
     const quickSummary = await generateQuickSummary(summarizedChunks, language);
-    const imageUrl = await generateImage(quickSummary.summary);
+    const imageUrl = await imagePromise;
 
     setQuickSummary(quickSummary);
     setImage(imageUrl);
