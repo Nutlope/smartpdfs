@@ -9,7 +9,7 @@
 
 ## Tech stack
 
-- [Together AI](https://togetherai.link) for inference
+- [Together AI](https://togetherai.link/?utm_source=smartpdfs&utm_medium=referral&utm_campaign=example-app) for inference
 - [Llama 3.3](https://togetherai.link/llama-3.3) for the LLM
 - Next.js with Tailwind & TypeScript
 - Prisma ORM with Neon (Postgres)

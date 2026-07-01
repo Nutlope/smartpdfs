@@ -51,7 +51,7 @@ export default function RootLayout({
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 underline transition hover:text-gray-900"
-              href="https://togetherai.link/"
+              href="https://togetherai.link/?utm_source=smartpdfs&utm_medium=referral&utm_campaign=example-app"
             >
               Together AI
             </a>
