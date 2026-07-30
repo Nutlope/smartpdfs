@@ -8,6 +8,7 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
+    "verify:models": "node scripts/verify-models.mjs",
     "update:all": "pnpm update --interactive --latest"
   },
   "dependencies": {

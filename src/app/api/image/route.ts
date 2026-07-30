@@ -5,6 +5,8 @@ import { awsS3Client } from "@/lib/s3client";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { generateText } from "ai";
 
+const IMAGE_PROMPT_MODEL = "Qwen/Qwen3.5-9B";
+
 export async function POST(req: Request) {
   const json = await req.json();
   const text = "text" in json ? json.text : "";
@@ -14,9 +16,7 @@ export async function POST(req: Request) {
   const truncatedText = text.slice(0, 2000);
 
   const { text: visualDescription } = await generateText({
-    model: togetheraiClient(
-      "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
-    ),
+    model: togetheraiClient(IMAGE_PROMPT_MODEL),
     prompt: dedent`
       Based on the following content, describe a single visual scene that represents its essence. 
       The scene should be suitable for a painting or illustration.
