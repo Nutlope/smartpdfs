@@ -1,0 +1,38 @@
+{
+  "date": "2026-08-04",
+  "runsPerFixture": 1,
+  "timeoutMs": 30000,
+  "fixtures": [
+    "technical-incident",
+    "italian-business-memo",
+    "french-research-brief",
+    "german-project-update"
+  ],
+  "summary": [
+    {
+      "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      "requests": 4,
+      "schemaSuccessRate": 0,
+      "factualCoverage": 0,
+      "p50Ms": 30000,
+      "p95Ms": 30000,
+      "averageEstimatedCostUsd": null,
+      "note": "All four baseline requests exceeded the 30-second ceiling."
+    },
+    {
+      "model": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "requests": 4,
+      "schemaSuccessRate": 1,
+      "factualCoverage": 1,
+      "p50Ms": 4363,
+      "p95Ms": 7041,
+      "averageEstimatedCostUsd": 0.00007329,
+      "latenciesMs": [7041, 4363, 5258, 4291]
+    }
+  ],
+  "limitations": [
+    "Synthetic fixtures are public test data, not production PDFs.",
+    "One run per fixture is directional evidence, not a stable production p95.",
+    "Factual coverage checks required source facts and does not measure writing style."
+  ]
+}

@@ -1,6 +1,5 @@
 "use client";
 
-import { useS3Upload } from "next-s3-upload";
 import { Button } from "@/components/ui/button";
 import {
   Chunk,
@@ -20,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { HomeLandingDrop } from "@/components/HomeLandingDrop";
 import SummaryContent from "@/components/ui/summary-content";
 import TableOfContents from "@/components/ui/table-of-contents";
+import { uploadPdf } from "@/lib/client-pdf-upload";
 
 export type StatusApp = "idle" | "parsing" | "generating";
 
@@ -37,8 +37,6 @@ export default function Home() {
   }>();
   const [image, setImage] = useState<string>();
   const [showMobileContents, setShowMobileContents] = useState(true);
-  const { uploadToS3 } = useS3Upload();
-
   const { toast } = useToast();
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -48,8 +46,6 @@ export default function Home() {
     if (!file || typeof language !== "string") return;
 
     setStatus("parsing");
-
-    const uploadedPdfPromise = uploadToS3(file);
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await getDocument({ data: arrayBuffer }).promise;
@@ -84,6 +80,11 @@ export default function Home() {
     setChunks(localChunks);
     setStatus("generating");
 
+    const uploadedPdfPromise = uploadPdf(file).then(
+      (uploadedPdf) => ({ uploadedPdf }),
+      (error: unknown) => ({ error }),
+    );
+
     const summarizedChunks: Chunk[] = [];
 
     const writeStream = new WritableStream({
@@ -110,7 +111,20 @@ export default function Home() {
     setQuickSummary(quickSummary);
     setImage(imageUrl);
 
-    const uploadedPdf = await uploadedPdfPromise;
+    const uploadResult = await uploadedPdfPromise;
+    if ("error" in uploadResult) {
+      toast({
+        variant: "destructive",
+        title: "PDF upload failed",
+        description:
+          uploadResult.error instanceof Error
+            ? uploadResult.error.message
+            : "Please try uploading the PDF again.",
+      });
+      setStatus("idle");
+      return;
+    }
+    const { uploadedPdf } = uploadResult;
     setFileUrl(uploadedPdf.url);
 
     setActiveChunkIndex((activeChunkIndex) =>

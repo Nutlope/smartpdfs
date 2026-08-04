@@ -14,6 +14,7 @@ import HomepageImage1 from "./images/homepage-image-1";
 import HomepageImage2 from "./images/homepage-image-2";
 import { StatusApp } from "@/app/page";
 import { useToast } from "@/hooks/use-toast";
+import { MAX_PDF_UPLOAD_BYTES } from "@/lib/pdf-upload";
 
 export const HomeLandingDrop = ({
   status,
@@ -61,8 +62,8 @@ export const HomeLandingDrop = ({
               }}
               onDrop={(acceptedFiles) => {
                 const file = acceptedFiles[0];
-                if (file.size > 15 * 1024 * 1024) {
-                  // 10MB in bytes
+                if (!file) return;
+                if (file.size > MAX_PDF_UPLOAD_BYTES) {
                   toast({
                     title: "📁 File Too Large",
                     description: "⚠️ File size must be less than 15MB",

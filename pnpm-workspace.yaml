@@ -1,0 +1,36 @@
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  braintrust: true
+  esbuild: true
+  prisma: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - "@aws-sdk/checksums@3.1000.25"
+  - "@aws-sdk/client-s3@3.1102.0"
+  - "@aws-sdk/core@3.977.5"
+  - "@aws-sdk/credential-provider-env@3.972.66"
+  - "@aws-sdk/credential-provider-http@3.972.68"
+  - "@aws-sdk/credential-provider-ini@3.973.11"
+  - "@aws-sdk/credential-provider-login@3.972.73"
+  - "@aws-sdk/credential-provider-node@3.972.77"
+  - "@aws-sdk/credential-provider-process@3.972.66"
+  - "@aws-sdk/credential-provider-sso@3.973.10"
+  - "@aws-sdk/credential-provider-web-identity@3.972.72"
+  - "@aws-sdk/middleware-sdk-s3@3.972.71"
+  - "@aws-sdk/nested-clients@3.997.40"
+  - "@aws-sdk/s3-presigned-post@3.1102.0"
+  - "@aws-sdk/token-providers@3.1102.0"
+  - "@next/env@16.3.0"
+  - "@next/eslint-plugin-next@16.3.0"
+  - "@next/swc-darwin-arm64@16.3.0"
+  - "@next/swc-darwin-x64@16.3.0"
+  - "@next/swc-linux-arm64-gnu@16.3.0"
+  - "@next/swc-linux-arm64-musl@16.3.0"
+  - "@next/swc-linux-x64-gnu@16.3.0"
+  - "@next/swc-linux-x64-musl@16.3.0"
+  - "@next/swc-win32-arm64-msvc@16.3.0"
+  - "@next/swc-win32-x64-msvc@16.3.0"
+  - eslint-config-next@16.3.0
+  - next@16.3.0
+  - together-ai@0.46.0
