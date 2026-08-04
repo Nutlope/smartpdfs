@@ -15,12 +15,13 @@ import {
   summarySchema,
 } from "@/lib/summary-model";
 import { after } from "next/server";
-import { z } from "zod";
 
 const SUMMARY_TIMEOUT_MS = 30_000;
 
 export async function POST(req: Request) {
-  const { text, language } = summaryRequestSchema.parse(await req.json());
+  const { text, language, mode = "chunk" } = summaryRequestSchema.parse(
+    await req.json(),
+  );
   const startedAt = performance.now();
   const requestSpan = startBraintrustSpan({
     name: "smartpdfs.summarize",
@@ -29,6 +30,7 @@ export async function POST(req: Request) {
       metadata: {
         route: "/api/summarize",
         language,
+        mode,
         sourceChars: text.length,
       },
     },
@@ -46,26 +48,24 @@ export async function POST(req: Request) {
   });
 
   try {
-    const jsonSchema = zodSchemaToJsonSchema();
     const summaryResponse = await togetheraiBaseClient.chat.completions.create(
       {
         model: SUMMARY_MODEL,
         messages: [
           {
             role: "system",
-            content: buildSummarySystemPrompt(language),
+            content: buildSummarySystemPrompt(language, mode),
           },
           { role: "user", content: text },
         ],
         reasoning: { enabled: false },
-        temperature: 0.2,
-        max_tokens: 1_600,
+        temperature: 0,
+        max_tokens: mode === "final" ? 1_000 : 1_600,
+        // JSON mode keeps output machine-readable without the severe latency
+        // observed from constrained JSON-schema decoding on longer PDF chunks.
+        // summarySchema remains the application-level contract below.
         response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "summary",
-            schema: jsonSchema,
-          },
+          type: "json_object",
         },
       },
       { signal: AbortSignal.timeout(SUMMARY_TIMEOUT_MS) },
@@ -117,13 +117,6 @@ export async function POST(req: Request) {
     endBraintrustSpan(requestSpan);
     after(() => flushBraintrustSpan(requestSpan));
   }
-}
-
-function zodSchemaToJsonSchema() {
-  return z.toJSONSchema(summarySchema, {
-    target: "openapi-3.0",
-    io: "output",
-  });
 }
 
 export const runtime = "nodejs";

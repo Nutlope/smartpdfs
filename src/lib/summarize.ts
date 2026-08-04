@@ -112,7 +112,7 @@ export async function generateQuickSummary(chunks: Chunk[], language: string) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text: allSummaries, language }),
+    body: JSON.stringify({ text: allSummaries, language, mode: "final" }),
   });
 
   const { title, summary } = await response.json();

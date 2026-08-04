@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildSummarySystemPrompt,
   sanitizeSummaryHtml,
   summaryRequestSchema,
+  summarySchema,
 } from "./summary-model";
 
 describe("summary model boundary", () => {
@@ -23,5 +25,17 @@ describe("summary model boundary", () => {
         '<p onclick="alert(1)">Safe</p><script>alert(2)</script><a href="https://example.com">link</a>',
       ),
     ).toBe("<p>Safe</p>link");
+  });
+
+  it("rejects summaries too long for a reliable structured response", () => {
+    expect(() =>
+      summarySchema.parse({ title: "Too long", summary: "x".repeat(5_001) }),
+    ).toThrow();
+  });
+
+  it("gives the final reduce pass a stricter completion contract", () => {
+    expect(buildSummarySystemPrompt("english", "final")).toContain(
+      "exactly one short <p> overview",
+    );
   });
 });
