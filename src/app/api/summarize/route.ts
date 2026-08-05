@@ -1,80 +1,123 @@
 import { togetheraiBaseClient } from "@/lib/ai";
-import assert from "assert";
-import dedent from "dedent";
-import { z } from "zod";
+import {
+  endBraintrustSpan,
+  flushBraintrustSpan,
+  logBraintrustSpan,
+  serializeBraintrustError,
+  startBraintrustChildSpan,
+  startBraintrustSpan,
+} from "@/lib/braintrust";
+import {
+  buildSummarySystemPrompt,
+  SUMMARY_MODEL,
+  sanitizeSummaryHtml,
+  summaryRequestSchema,
+  summarySchema,
+} from "@/lib/summary-model";
+import { after } from "next/server";
+
+const SUMMARY_TIMEOUT_MS = 30_000;
 
 export async function POST(req: Request) {
-  const { text, language } = await req.json();
-
-  assert.ok(typeof text === "string");
-  assert.ok(typeof language === "string");
-
-  const systemPrompt = dedent`
-    You are an expert at summarizing text.
-
-    Your task:
-    1. Read the document excerpt I will provide
-    2. Create a concise summary in ${language}
-    3. Generate a short, descriptive title in ${language}
-
-    Guidelines for the summary:
-    - Format the summary in HTML
-    - Use <p> tags for paragraphs (2-3 sentences each)
-    - Use <ul> and <li> tags for bullet points
-    - Use <h3> tags for subheadings when needed but don't repeat the initial title in the first paragraph
-    - Ensure proper spacing with appropriate HTML tags
-
-    The summary should be well-structured and easy to scan, while maintaining accuracy and completeness.
-    Please analyze the text thoroughly before starting the summary.
-
-    IMPORTANT: Output ONLY valid JSON matching the schema. Output ONLY valid HTML without any markdown or plain text line breaks.
-  `;
-
-  const summarySchema = z.object({
-    title: z.string().describe("A title for the summary"),
-    summary: z
-      .string()
-      .describe(
-        "The actual summary of the text containing new lines breaks between paragraphs or phrases for better readability.",
-      ),
+  const { text, language, mode = "chunk" } = summaryRequestSchema.parse(
+    await req.json(),
+  );
+  const startedAt = performance.now();
+  const requestSpan = startBraintrustSpan({
+    name: "smartpdfs.summarize",
+    type: "task",
+    event: {
+      metadata: {
+        route: "/api/summarize",
+        language,
+        mode,
+        sourceChars: text.length,
+      },
+    },
+  });
+  const inferenceSpan = startBraintrustChildSpan(requestSpan, {
+    name: "smartpdfs.summarize.inference",
+    type: "llm",
+    event: {
+      metadata: {
+        model: SUMMARY_MODEL,
+        provider: "together",
+        reasoningEnabled: false,
+      },
+    },
   });
 
-  const jsonSchema = z.toJSONSchema(summarySchema, {
-    target: "openapi-3.0",
-    io: "output",
-  });
-
-  const summaryResponse = await togetheraiBaseClient.chat.completions.create({
-    model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    messages: [
+  try {
+    const summaryResponse = await togetheraiBaseClient.chat.completions.create(
       {
-        role: "system",
-        content: systemPrompt,
+        model: SUMMARY_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: buildSummarySystemPrompt(language, mode),
+          },
+          { role: "user", content: text },
+        ],
+        reasoning: { enabled: false },
+        temperature: 0,
+        max_tokens: mode === "final" ? 1_000 : 1_600,
+        // JSON mode keeps output machine-readable without the severe latency
+        // observed from constrained JSON-schema decoding on longer PDF chunks.
+        // summarySchema remains the application-level contract below.
+        response_format: {
+          type: "json_object",
+        },
       },
-      {
-        role: "user",
-        content: text,
-      },
-    ],
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "summary",
-        schema: jsonSchema,
-      },
-    } as any,
-  });
+      { signal: AbortSignal.timeout(SUMMARY_TIMEOUT_MS) },
+    );
 
-  const content = summaryResponse.choices[0]?.message?.content;
+    const content = summaryResponse.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("Together returned an empty summary");
+    }
 
-  if (!content) {
-    console.log("Content was blank", JSON.stringify(summaryResponse, null, 2));
-    return Response.json({ error: "No content generated" }, { status: 500 });
+    const parsed = summarySchema.parse(JSON.parse(content));
+    const sanitizedSummary = sanitizeSummaryHtml(parsed.summary);
+    if (!sanitizedSummary) {
+      throw new Error("Together returned an empty summary after sanitization");
+    }
+    const safeResult = { ...parsed, summary: sanitizedSummary };
+    const usage = summaryResponse.usage;
+    logBraintrustSpan(inferenceSpan, {
+      metadata: {
+        finishReason: summaryResponse.choices[0]?.finish_reason ?? null,
+        schemaValid: true,
+        outputChars: safeResult.summary.length,
+      },
+      metrics: {
+        latency_ms: performance.now() - startedAt,
+        prompt_tokens: usage?.prompt_tokens ?? 0,
+        completion_tokens: usage?.completion_tokens ?? 0,
+        tokens: usage?.total_tokens ?? 0,
+      },
+    });
+    endBraintrustSpan(inferenceSpan);
+
+    logBraintrustSpan(requestSpan, {
+      metadata: { success: true, schemaValid: true },
+      metrics: { total_ms: performance.now() - startedAt },
+    });
+    return Response.json(safeResult);
+  } catch (error) {
+    const serializedError = serializeBraintrustError(error);
+    logBraintrustSpan(inferenceSpan, { error: serializedError });
+    endBraintrustSpan(inferenceSpan);
+    logBraintrustSpan(requestSpan, {
+      error: serializedError,
+      metadata: { success: false },
+      metrics: { total_ms: performance.now() - startedAt },
+    });
+    throw error;
+  } finally {
+    endBraintrustSpan(requestSpan);
+    after(() => flushBraintrustSpan(requestSpan));
   }
-
-  const parsed = summarySchema.parse(JSON.parse(content));
-
-  return Response.json(parsed);
 }
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const maxDuration = 60;

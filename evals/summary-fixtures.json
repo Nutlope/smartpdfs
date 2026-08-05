@@ -1,0 +1,57 @@
+[
+  {
+    "id": "technical-incident",
+    "language": "english",
+    "text": "On 14 July, the Atlas API began returning HTTP 503 errors at 09:14 UTC after release 2026.07.14 changed the connection pool from 120 to 40. Error rates peaked at 18% for 11 minutes. The team rolled back at 09:25 UTC, and traffic recovered by 09:27 UTC. No customer data was lost. The corrective actions are to restore a minimum pool size of 100, add a saturation alert at 75%, and require a load test before future pool changes.",
+    "requiredFacts": [
+      "14 July",
+      "09:14",
+      "503",
+      "18%",
+      "11 minutes",
+      "09:25",
+      "09:27",
+      "No customer data was lost",
+      "100",
+      "75%"
+    ]
+  },
+  {
+    "id": "italian-business-memo",
+    "language": "italian",
+    "text": "Nel secondo trimestre, Acme Italia ha registrato ricavi per 4,2 milioni di euro, in aumento del 18% rispetto all'anno precedente. Il margine lordo è salito dal 56% al 61%. Il consiglio ha approvato un investimento di 600.000 euro per aprire un centro di assistenza a Torino entro novembre. Il progetto sarà guidato da Giulia Bianchi e dovrebbe creare 24 posti di lavoro. Il rischio principale è un ritardo di otto settimane nella consegna delle apparecchiature.",
+    "requiredFacts": [
+      "4,2 milioni",
+      "18%",
+      "56%",
+      "61%",
+      "600.000",
+      "Torino",
+      "novembre",
+      "Giulia Bianchi",
+      "24",
+      "otto settimane"
+    ]
+  },
+  {
+    "id": "french-research-brief",
+    "language": "french",
+    "text": "L'étude Orion a suivi 1 240 participants pendant 18 mois. Le groupe utilisant le nouveau protocole a réduit le temps moyen de récupération de 12,4 à 8,1 jours, sans augmentation statistiquement significative des effets indésirables. Les auteurs précisent toutefois que 72% des participants avaient moins de 50 ans et recommandent une étude distincte chez les patients plus âgés avant un déploiement général.",
+    "requiredFacts": ["1 240", "18 mois", "12,4", "8,1", "72%", "50 ans"]
+  },
+  {
+    "id": "german-project-update",
+    "language": "german",
+    "text": "Das Projekt Nordlicht liegt zwei Wochen hinter dem ursprünglichen Zeitplan. Von 36 geplanten Standorten sind 29 vollständig eingerichtet, fünf warten auf Netzwerkhardware und zwei benötigen neue Genehmigungen. Das Budget bleibt mit 2,8 Millionen Euro unverändert. Die Projektleitung erwartet die Fertigstellung bis zum 15. Oktober, sofern die Hardware spätestens am 20. September eintrifft.",
+    "requiredFacts": [
+      "zwei Wochen",
+      "36",
+      "29",
+      "fünf",
+      "zwei",
+      "2,8 Millionen",
+      "15. Oktober",
+      "20. September"
+    ]
+  }
+]
