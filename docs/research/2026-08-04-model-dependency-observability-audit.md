@@ -29,7 +29,7 @@ The authenticated `GET /v1/models` response was also checked on 2026-08-04 witho
 - `meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` was removed on 2025-11-13; SmartPDFs uses the non-Free endpoint, which is still active.
 - `meta-llama/Meta-Llama-3-70B-Instruct-Turbo` was removed on 2025-12-23; SmartPDFs uses Llama **3.3**, not Llama 3.
 - `meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo` was removed on 2026-02-25; SmartPDFs does not use that 3.1 endpoint.
-- `black-forest-labs/FLUX.1-dev` was removed on 2026-02-25; SmartPDFs uses **FLUX.2-dev**.
+- The previous-generation image endpoint was removed on 2026-02-25; SmartPDFs already uses **FLUX.2-dev**.
 
 Source: [Together deprecation history](https://docs.together.ai/docs/deprecations#deprecation-history).
 
