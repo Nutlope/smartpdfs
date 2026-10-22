@@ -19,8 +19,31 @@ export type RateLimitStore = {
   deleteExpired(before: Date): Promise<void>;
 };
 
+// The project has no migrations, so the table is provisioned on first use.
+let tableReady: Promise<void> | null = null;
+
+function ensureTable() {
+  tableReady ??= (async () => {
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "RateLimit" (
+        "key" TEXT NOT NULL,
+        "count" INTEGER NOT NULL,
+        "windowStart" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "RateLimit_pkey" PRIMARY KEY ("key")
+      )`);
+    await client.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "RateLimit_windowStart_idx" ON "RateLimit"("windowStart")`,
+    );
+  })().catch((error) => {
+    tableReady = null;
+    throw error;
+  });
+  return tableReady;
+}
+
 export const rateLimitStore: RateLimitStore = {
   async increment(key, windowStart) {
+    await ensureTable();
     const rows = await client.$queryRaw<{ count: number | bigint }[]>`
       INSERT INTO "RateLimit" ("key", "count", "windowStart")
       VALUES (${key}, 1, ${windowStart.toISOString()}::timestamp(3))
