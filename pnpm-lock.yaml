@@ -30,8 +30,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.11(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.9(react@19.2.9))(react@19.2.9)
       braintrust:
-        specifier: ^3.39.0
-        version: 3.39.0(@aws-sdk/credential-provider-web-identity@3.972.72)(@types/react@19.2.18)(supports-color@7.2.0)(zod@4.3.6)
+        specifier: ~3.38.0
+        version: 3.38.0(@aws-sdk/credential-provider-web-identity@3.972.72)(@types/react@19.2.18)(supports-color@7.2.0)(zod@4.3.6)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -905,6 +905,9 @@ packages:
   '@jridgewell/set-array@1.2.1':
     resolution: {integrity: sha512-R8gLRTZeyp03ymzP/6Lil/28tGeGEzhx1q2k703KGWRAI1VdvPIXdG70VJc2pAMw3NA6JKL5hhFu1sJX0Mnn/A==}
     engines: {node: '>=6.0.0'}
+
+  '@jridgewell/sourcemap-codec@1.5.0':
+    resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
@@ -1955,8 +1958,8 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  braintrust@3.39.0:
-    resolution: {integrity: sha512-f8fDy08MwSRql8Ojdu7q83HwIbWm2aImWawqbKjLrcR9uh5FyR6UEru69gcBnIPlQ47pcsH6AGfO8GPQEDHApg==}
+  braintrust@3.38.0:
+    resolution: {integrity: sha512-zS+aBdTmruMruIECNdK79iMztxzias3DnYq+f6ZLUSfbL/BKbYTArgnPMhmeC68h/IunmBQ3xsoond2Y9H5QJA==}
     hasBin: true
     peerDependencies:
       '@types/react': '>=18'
@@ -3025,8 +3028,8 @@ packages:
   mz@2.7.0:
     resolution: {integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==}
 
-  nanoid@3.3.18:
-    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
+  nanoid@3.3.20:
+    resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -4648,7 +4651,7 @@ snapshots:
   '@jridgewell/gen-mapping@0.3.8':
     dependencies:
       '@jridgewell/set-array': 1.2.1
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/remapping@2.3.5':
@@ -4659,6 +4662,8 @@ snapshots:
   '@jridgewell/resolve-uri@3.1.2': {}
 
   '@jridgewell/set-array@1.2.1': {}
+
+  '@jridgewell/sourcemap-codec@1.5.0': {}
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
@@ -5595,7 +5600,7 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  braintrust@3.39.0(@aws-sdk/credential-provider-web-identity@3.972.72)(@types/react@19.2.18)(supports-color@7.2.0)(zod@4.3.6):
+  braintrust@3.38.0(@aws-sdk/credential-provider-web-identity@3.972.72)(@types/react@19.2.18)(supports-color@7.2.0)(zod@4.3.6):
     dependencies:
       '@next/env': 14.2.35
       '@vercel/functions': 1.6.0(@aws-sdk/credential-provider-web-identity@3.972.72)
@@ -5988,7 +5993,7 @@ snapshots:
 
   esbuild-register@3.6.0(esbuild@0.25.3)(supports-color@7.2.0):
     dependencies:
-      debug: 4.4.0(supports-color@7.2.0)
+      debug: 4.4.3(supports-color@7.2.0)
       esbuild: 0.25.3
     transitivePeerDependencies:
       - supports-color
@@ -6861,7 +6866,7 @@ snapshots:
       object-assign: 4.1.1
       thenify-all: 1.6.0
 
-  nanoid@3.3.18: {}
+  nanoid@3.3.20: {}
 
   nanoid@5.1.16: {}
 
@@ -7065,13 +7070,13 @@ snapshots:
 
   postcss@8.5.23:
     dependencies:
-      nanoid: 3.3.18
+      nanoid: 3.3.20
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
   postcss@8.5.25:
     dependencies:
-      nanoid: 3.3.18
+      nanoid: 3.3.20
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
