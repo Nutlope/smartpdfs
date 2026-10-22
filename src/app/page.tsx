@@ -100,13 +100,26 @@ export default function Home() {
 
     const streamPromise = summarizeStream(localChunks, language);
     const imagePromise = generateImage(localChunks[0]?.text ?? "");
+    imagePromise.catch(() => {});
 
     const [stream] = await Promise.all([streamPromise]);
     const controller = new AbortController();
     await stream.pipeTo(writeStream, { signal: controller.signal });
 
-    const quickSummary = await generateQuickSummary(summarizedChunks, language);
-    const imageUrl = await imagePromise;
+    let quickSummary: { title: string; summary: string };
+    let imageUrl: string;
+    try {
+      quickSummary = await generateQuickSummary(summarizedChunks, language);
+      imageUrl = await imagePromise;
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Unable to finish your Smart PDF",
+        description:
+          error instanceof Error ? error.message : "Please try again later.",
+      });
+      return;
+    }
 
     setQuickSummary(quickSummary);
     setImage(imageUrl);
@@ -131,7 +144,7 @@ export default function Home() {
       activeChunkIndex === null ? "quick-summary" : activeChunkIndex,
     );
 
-    await sharePdf({
+    const shareResult = await sharePdf({
       pdfName: file.name,
       pdfUrl: uploadedPdf.url,
       imageUrl: imageUrl,
@@ -150,6 +163,13 @@ export default function Home() {
         })),
       ],
     });
+    if (shareResult?.error) {
+      toast({
+        variant: "destructive",
+        title: "Unable to save your Smart PDF",
+        description: shareResult.error,
+      });
+    }
   }
 
   return (

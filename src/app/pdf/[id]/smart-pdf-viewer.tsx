@@ -41,12 +41,14 @@ export default function SmartPDFViewer({
             {smartPdf.pdfName}
           </p>
           <div className="flex flex-row gap-2">
-            <Link href={smartPdf.pdfUrl} target="_blank">
-              <ActionButton>
-                <SquareArrowOutUpRight size={14} />
-                <span>Original PDF</span>
-              </ActionButton>
-            </Link>
+            {smartPdf.pdfUrl && (
+              <Link href={smartPdf.pdfUrl} target="_blank">
+                <ActionButton>
+                  <SquareArrowOutUpRight size={14} />
+                  <span>Original PDF</span>
+                </ActionButton>
+              </Link>
+            )}
             <div className="md:hidden">
               <ActionButton onClick={handleShare} size="icon">
                 <LinkIcon />

@@ -1,6 +1,11 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { MAX_PDF_UPLOAD_BYTES } from "@/lib/pdf-upload";
+import { enforceRateLimit } from "@/lib/server-rate-limit";
 import { POST } from "./route";
+
+vi.mock("@/lib/server-rate-limit", () => ({
+  enforceRateLimit: vi.fn(async () => null),
+}));
 
 const originalEnvironment = {
   key: process.env.S3_UPLOAD_KEY,
@@ -72,6 +77,24 @@ describe("POST /api/s3-upload", () => {
     await expect(response.json()).resolves.toEqual({
       error: "Only PDF files are allowed",
     });
+  });
+
+  it("does not sign uploads when the rate limiter rejects the request", async () => {
+    vi.mocked(enforceRateLimit).mockResolvedValueOnce(
+      Response.json({ error: "Too many requests" }, { status: 429 }),
+    );
+
+    const response = await requestUpload({
+      filename: "report.pdf",
+      contentType: "application/pdf",
+      size: 1_024,
+    });
+
+    expect(response.status).toBe(429);
+    expect(enforceRateLimit).toHaveBeenLastCalledWith(
+      "pdfUpload",
+      expect.anything(),
+    );
   });
 });
 

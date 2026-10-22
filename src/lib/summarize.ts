@@ -76,6 +76,7 @@ export async function summarizeStream(chunks: Chunk[], language: string) {
           },
           body: JSON.stringify({ text, language }),
         });
+        if (!response.ok) return;
         let data;
         try {
           data = await response.json();
@@ -114,6 +115,11 @@ export async function generateQuickSummary(chunks: Chunk[], language: string) {
     },
     body: JSON.stringify({ text: allSummaries, language, mode: "final" }),
   });
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "The summary could not be generated"),
+    );
+  }
 
   const { title, summary } = await response.json();
 
@@ -136,8 +142,22 @@ export async function generateImage(text: string) {
     },
     body: JSON.stringify({ text }),
   });
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "The cover image could not be generated"),
+    );
+  }
 
   const data: ImageGenerationResponse = await response.json();
 
   return data.url;
+}
+
+async function getErrorMessage(response: Response, fallback: string) {
+  try {
+    const body = (await response.json()) as { error?: unknown };
+    return typeof body.error === "string" ? body.error : fallback;
+  } catch {
+    return fallback;
+  }
 }

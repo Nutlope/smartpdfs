@@ -11,6 +11,7 @@ import {
 } from "@/lib/braintrust";
 import type { ImageGenerationResponse } from "@/lib/summarize";
 import { getS3 } from "@/lib/s3client";
+import { enforceRateLimit } from "@/lib/server-rate-limit";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { after } from "next/server";
 import { z } from "zod";
@@ -21,11 +22,20 @@ const TEXT_TIMEOUT_MS = 30_000;
 const IMAGE_TIMEOUT_MS = 60_000;
 
 const imageRequestSchema = z.object({
-  text: z.string().min(1).max(100_000),
+  text: z.string().min(1).max(50_000),
 });
 
 export async function POST(req: Request) {
-  const { text } = imageRequestSchema.parse(await req.json());
+  const parsedRequest = imageRequestSchema.safeParse(
+    await req.json().catch(() => null),
+  );
+  if (!parsedRequest.success) {
+    return Response.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const limited = await enforceRateLimit("image", req.headers);
+  if (limited) return limited;
+
+  const { text } = parsedRequest.data;
   const startedAt = performance.now();
   const requestSpan = startBraintrustSpan({
     name: "smartpdfs.image",

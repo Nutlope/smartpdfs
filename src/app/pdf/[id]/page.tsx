@@ -1,15 +1,26 @@
 import SmartPDFViewer from "@/app/pdf/[id]/smart-pdf-viewer";
 import client from "@/lib/prisma";
+import { sanitizeSummaryHtml } from "@/lib/summary-model";
 import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import { Metadata, ResolvingMetadata } from "next";
 
 const getSmartPDF = unstable_cache(
   async (id: string) => {
-    return client.smartPDF.findUnique({
+    const smartPdf = await client.smartPDF.findUnique({
       where: { id },
-      include: { sections: true },
+      include: { sections: { orderBy: { position: "asc" } } },
     });
+    if (!smartPdf) return null;
+
+    return {
+      ...smartPdf,
+      pdfUrl: smartPdf.pdfUrl.startsWith("https://") ? smartPdf.pdfUrl : "",
+      sections: smartPdf.sections.map((section) => ({
+        ...section,
+        summary: sanitizeSummaryHtml(section.summary),
+      })),
+    };
   },
   ["smart-pdf-query"],
   { revalidate: false },
