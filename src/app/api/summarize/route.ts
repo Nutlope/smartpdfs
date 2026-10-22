@@ -14,14 +14,22 @@ import {
   summaryRequestSchema,
   summarySchema,
 } from "@/lib/summary-model";
+import { enforceRateLimit } from "@/lib/server-rate-limit";
 import { after } from "next/server";
 
 const SUMMARY_TIMEOUT_MS = 30_000;
 
 export async function POST(req: Request) {
-  const { text, language, mode = "chunk" } = summaryRequestSchema.parse(
-    await req.json(),
+  const parsedRequest = summaryRequestSchema.safeParse(
+    await req.json().catch(() => null),
   );
+  if (!parsedRequest.success) {
+    return Response.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const limited = await enforceRateLimit("summarize", req.headers);
+  if (limited) return limited;
+
+  const { text, language, mode = "chunk" } = parsedRequest.data;
   const startedAt = performance.now();
   const requestSpan = startBraintrustSpan({
     name: "smartpdfs.summarize",

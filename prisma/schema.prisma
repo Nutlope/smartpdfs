@@ -33,3 +33,11 @@ model Section {
   SmartPDF   SmartPDF @relation(fields: [smartPDFId], references: [id])
   smartPDFId String
 }
+
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+
+  @@index([windowStart])
+}
