@@ -34,3 +34,6 @@ minimumReleaseAgeExclude:
   - eslint-config-next@16.3.0
   - next@16.3.0
   - together-ai@0.46.0
+  - braintrust@3.39.0
+overrides:
+  express>proxy-addr: ^2.0.8
